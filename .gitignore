@@ -1,6 +1,5 @@
 .idea
 target
 *.iml
-*.xml
-*/*.xml
+*/*.iml
 test.sh

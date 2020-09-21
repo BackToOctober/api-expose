@@ -77,21 +77,21 @@ public class MainController {
 
     @GetMapping(value = "/check-status/{requestId}")
     public ResponseEntity<?> checkStatus(@PathVariable(value = "requestId") String requestId) {
-        Optional<JobStateRequest> result = jobStateRequestRepository.findById(requestId);
+        Optional<JobRequest> result = jobRequestRepository.findById(requestId);
         if (!result.isPresent()) {
             return new ResponseEntity<>(HttpUtils.genErrorJson("not found").toString(), HttpStatus.OK);
         }
         return new ResponseEntity<>(result.get(), HttpStatus.OK);
     }
 
-    @PostMapping(value = "/query-data", headers = {"application/json; charset=UTF-8"})
+    @PostMapping(value = "/query-data", headers = {"Content-Type=application/json; charset=UTF-8"})
     public ResponseEntity<?> queryData(@RequestBody String query) {
         if (QueryParsing.validate(query, METADATA_FOLDER)) {
             long timeStamp = System.currentTimeMillis();
             JobRequest job = new JobRequest(query, JobState.WAITING(), timeStamp, timeStamp);
             this.jobRequestRepository.save(job);
             String path = Paths.get(OUTPUT_RESULT_FOLDER, job.getId()).toString();
-            return new ResponseEntity<>(HttpUtils.genSuccessJson(path), HttpStatus.OK);
+            return new ResponseEntity<>(HttpUtils.genSuccessJson(path).toString(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpUtils.genErrorJson("query is not invalid"), HttpStatus.OK);
         }

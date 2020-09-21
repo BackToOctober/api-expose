@@ -18,13 +18,7 @@
       "type": "long"
     },{
       "field": "single",
-      "type": "timestamp"
-    },{
-      "field": "birthday",
-      "type": "timestamp"
-    },{
-      "field": "birthday",
-      "type": "timestamp"
+      "type": "boolean"
     }
   ]
 }

@@ -1,0 +1,21 @@
+{
+  "type": "query_article",
+  "query": {
+    "article_type": "userprofile",
+    "fields": [
+      "all"
+    ],
+    "filter": {
+      "name": {
+        "like": "linhnv52"
+      },
+      "age": {
+        "gt": 50,
+        "lt": 24
+      }
+    },
+    "fields_exclude": [
+
+    ]
+  }
+}

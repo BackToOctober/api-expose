@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import vn.com.vtcc.apiExpose.utils.IDGenerator;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -16,6 +17,8 @@ public class JobRequest {
 
     @Id
     private String id;
+
+    @Column(columnDefinition = "longtext")
     private String query;
     private String jobState;
     private long createdTime;

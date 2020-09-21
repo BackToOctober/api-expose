@@ -2,13 +2,14 @@ package vn.com.vtcc.apiExpose.app
 
 import java.util.Properties
 
+import vn.com.vtcc.apiExpose.app.SparkJobRequestProcessingApplication.{hiveFactory, isRunning, listJobRequest, mysqlFactory, run, runSpark}
 import vn.com.vtcc.apiExpose.dataSource.mysql.{MysqlConnectorFactory, SparkThriftConnectorFactory}
 import vn.com.vtcc.apiExpose.entity.JobRequest
-import vn.com.vtcc.apiExpose.utils.{FileUtils, JacksonMapper}
+import vn.com.vtcc.apiExpose.utils.FileUtils
 
 import scala.collection.mutable.ArrayBuffer
 
-object SparkJobRequestProcessingApplication {
+object ScheduleJobSparkApplication {
 
     var OUTPUT_FOLDER = "output/result"
     var mysqlFactory : MysqlConnectorFactory = null
@@ -43,7 +44,6 @@ object SparkJobRequestProcessingApplication {
     def run(props: Properties): Unit = {
         isRunning = true
         mysqlFactory = new MysqlConnectorFactory(props)
-        hiveFactory = new SparkThriftConnectorFactory(props)
         //TODO: create folder if not exists
 
         while (isRunning) {
