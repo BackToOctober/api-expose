@@ -1,0 +1,33 @@
+{
+  "type": "query_article",
+  "query": {
+    "article_type": "fb_page_post",
+    "fields": [
+      "col1", "col2", "col3"
+    ],
+    "filter": {
+      "time_public": {
+        "start": "",
+        "end": ""
+      },
+      "author": {
+        "and": {
+          "lower": true,
+          "like": "%like%"
+        },
+        "or": {
+          "equal": "test",
+          "contain": "hallo",
+          "regexp": ""
+        }
+      },
+      "count": {
+        "gt": 12123,
+        "lt": 111
+      }
+    },
+    "fields_exclude": [
+      "col4", "col5", "col6"
+    ]
+  }
+}

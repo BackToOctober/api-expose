@@ -1,0 +1,30 @@
+{
+  "article": "userprofile",
+  "metadata": [
+    {
+      "field": "name",
+      "type": "string"
+    },{
+      "field": "birthday",
+      "type": "timestamp"
+    },{
+      "field": "location",
+      "type": "string"
+    },{
+      "field": "age",
+      "type": "int"
+    },{
+      "field": "number_of_posts",
+      "type": "long"
+    },{
+      "field": "single",
+      "type": "timestamp"
+    },{
+      "field": "birthday",
+      "type": "timestamp"
+    },{
+      "field": "birthday",
+      "type": "timestamp"
+    }
+  ]
+}
