@@ -6,6 +6,8 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -44,6 +46,16 @@ public class FileUtils {
             return file.toString();
         }).collect(Collectors.toList());
         return listFileName;
+    }
+
+    public static boolean createFolderIfNotExists(String path) {
+        try {
+            Files.createDirectories(Paths.get(path));
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 }

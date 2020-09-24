@@ -1,0 +1,32 @@
+{
+  "type": "query_article",
+  "query": {
+    "article_type": "userprofile",
+    "fields": [
+      "col1", "col2", "col3"
+    ],
+    "filter": {
+      "name": {
+        "or": {
+          "equal": "111",
+          "regexp": "222"
+        }
+      },
+      "location": {
+        "and": {
+          "or_1": {
+            "like_1": "333",
+            "like_2": "444"
+          },
+          "and_1": {
+            "not_like": "555"
+          }
+        }
+      }
+    },
+    "limit": "not",
+    "fields_exclude": [
+      "col4", "col5", "col6"
+    ]
+  }
+}

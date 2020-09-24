@@ -7,15 +7,17 @@
     ],
     "filter": {
       "name": {
-        "like_1": "linhnv52"
+        "like": "linhnv52"
       },
       "age": {
-        "gt": 50,
-        "lt": 24
+        "lt": 50,
+        "gt": 24
+      },
+      "single": {
+        "is": "true"
       }
     },
     "fields_exclude": [
-
     ]
   }
 }

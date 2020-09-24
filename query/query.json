@@ -12,6 +12,12 @@
       },
       "author": {
         "and": {
+          "or_1": {
+
+          },
+          "or_2": {
+
+          },
           "lower": true,
           "like": "%like%"
         },
@@ -22,8 +28,8 @@
         }
       },
       "count": {
-        "gt": 12123,
-        "lt": 111
+        "gt": 123,
+        "lt": 123123123
       }
     },
     "fields_exclude": [

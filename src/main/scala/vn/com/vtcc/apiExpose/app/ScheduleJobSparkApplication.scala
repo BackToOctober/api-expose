@@ -2,19 +2,25 @@ package vn.com.vtcc.apiExpose.app
 
 import java.util.Properties
 
-import vn.com.vtcc.apiExpose.app.SparkJobRequestProcessingApplication.{hiveFactory, isRunning, listJobRequest, mysqlFactory, run, runSpark}
+import org.apache.log4j.LogManager
+import org.apache.spark.sql.SparkSession
+import org.json.JSONObject
 import vn.com.vtcc.apiExpose.dataSource.mysql.{MysqlConnectorFactory, SparkThriftConnectorFactory}
 import vn.com.vtcc.apiExpose.entity.JobRequest
 import vn.com.vtcc.apiExpose.utils.FileUtils
+import vn.com.vtcc.apiExpose.utils.transform.QueryParsing
 
 import scala.collection.mutable.ArrayBuffer
 
 object ScheduleJobSparkApplication {
 
-    var OUTPUT_FOLDER = "output/result"
+    val logger = LogManager.getLogger(ScheduleJobSparkApplication.getClass)
+
+    var outputHdfsFolder : String = _
+    var metadataFolder : String = _
     var mysqlFactory : MysqlConnectorFactory = null
-    var hiveFactory : SparkThriftConnectorFactory = null
-    @volatile var isRunning = false
+
+    var thresholdRetry : Int = 1
 
     def lockJobRequest(): Boolean = {
         true
@@ -32,8 +38,9 @@ object ScheduleJobSparkApplication {
             val job_state = results.getString("job_state")
             val updated_time = results.getLong("updated_time")
             val created_time = results.getLong("created_time")
-            if (job_state.equals(JobState.WAITING)) {
-                val jobRequest = new JobRequest(id, query, job_state, updated_time, created_time)
+            val retry = results.getInt("retry")
+            if (job_state.equals(JobState.WAITING) || (job_state.equals(JobState.FAIL) && retry < thresholdRetry)) {
+                val jobRequest = new JobRequest(id, query, job_state, retry, updated_time, created_time)
                 list.+=(jobRequest)
             }
         }
@@ -42,47 +49,52 @@ object ScheduleJobSparkApplication {
     }
 
     def run(props: Properties): Unit = {
-        isRunning = true
         mysqlFactory = new MysqlConnectorFactory(props)
-        //TODO: create folder if not exists
-
-        while (isRunning) {
-            val jobs = listJobRequest()
-            for (job <- jobs) {
+        thresholdRetry = props.getProperty("job.retry").toInt
+        metadataFolder = props.getProperty("config.metadata")
+        outputHdfsFolder = props.getProperty("hdfs.output.result")
+        val jobs = listJobRequest()
+        for (job <- jobs) {
+            try {
                 runSpark(job)
+            } catch {
+                case e: Exception => e.printStackTrace()
             }
-            Thread.sleep(60000)
         }
     }
 
     def runSpark(job: JobRequest): Unit = {
-        val tup = parseToSql(job.getQuery)
-        val sql = tup._1
-        val fields = tup._2
+        val sql = parseToSql(job.getQuery)
         val jobId = job.getId
-        val conn = hiveFactory.createConnect()
-        val statement = conn.createStatement
-        val results = statement.executeQuery(sql)
-        while (results.next()) {
-            //TODO: write csv file
+        try {
+            updateJobState(jobId, JobState.RUNNING, job.getRetry)
+            val spark = SparkSession.builder().getOrCreate()
+            val df = spark.sql(sql)
+            val path = outputHdfsFolder + "/" + jobId
+            df.write.option("header", "true").option("delimiter", ",").csv(path)
+            updateJobState(jobId, JobState.FILE_SAVE, job.getRetry + 1)
+        } catch {
+            case e: Exception => {
+                updateJobState(jobId, JobState.FAIL, job.getRetry + 1)
+            }
         }
-        updateJobState(job, "")
     }
 
-    def updateJobState(job: JobRequest, state: String): Unit = {
-
+    def updateJobState(id: String, state: String, retry: Int): Unit = {
+        val query = "update job_request set job_state = {{state}} and retry = {{retry}} and updated_time = {{updated_time}} where id = {{id}}"
+        val conn = mysqlFactory.createConnect()
+        val statement = conn.createStatement
+        val results = statement.executeQuery(query.replace("{{state}}", state)
+                    .replace("{{retry}}", retry.toString)
+                    .replace("{{updated_time}}", System.currentTimeMillis().toString)
+                    .replace("{{id}}", id))
     }
 
-    def csvWriter(): Unit = {
-
-    }
-
-    def parseToSql(query: String): (String, String) = {
-        ("", "")
-    }
-
-    def close(): Unit = {
-        isRunning = false
+    def parseToSql(query: String): String= {
+        val json = new JSONObject(query)
+        val t1 = QueryParsing.parse(json.getJSONObject("query").toString, metadataFolder)
+        logger.info("--> query: " + t1)
+        t1
     }
 
     def main(args: Array[String]): Unit = {

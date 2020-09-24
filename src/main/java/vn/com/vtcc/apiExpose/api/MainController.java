@@ -2,20 +2,27 @@ package vn.com.vtcc.apiExpose.api;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.com.vtcc.apiExpose.app.JobState;
 import vn.com.vtcc.apiExpose.entity.JobRequest;
-import vn.com.vtcc.apiExpose.entity.JobStateRequest;
 import vn.com.vtcc.apiExpose.repository.JobRequestRepository;
-import vn.com.vtcc.apiExpose.repository.JobStateRequestRepository;
 import vn.com.vtcc.apiExpose.utils.FileUtils;
 import vn.com.vtcc.apiExpose.utils.HttpUtils;
+import vn.com.vtcc.apiExpose.utils.transform.BooleanOperator;
 import vn.com.vtcc.apiExpose.utils.transform.QueryParsing;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
@@ -26,16 +33,12 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/api")
 public class MainController {
 
+    private static Logger logger = LoggerFactory.getLogger(MainController.class);
+
     private static String METADATA_FOLDER = "config/metadata/";
     private static String OUTPUT_RESULT_FOLDER = "output/result";
 
-    private JobStateRequestRepository jobStateRequestRepository;
     private JobRequestRepository jobRequestRepository;
-
-    @Autowired
-    public void setJobStateRequestRepository(JobStateRequestRepository jobStateRequestRepository) {
-        this.jobStateRequestRepository = jobStateRequestRepository;
-    }
 
     @Autowired
     public void setJobRequestRepository(JobRequestRepository jobRequestRepository) {
@@ -93,8 +96,32 @@ public class MainController {
             String path = Paths.get(OUTPUT_RESULT_FOLDER, job.getId()).toString();
             return new ResponseEntity<>(HttpUtils.genSuccessJson(path).toString(), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpUtils.genErrorJson("query is not invalid"), HttpStatus.OK);
+            return new ResponseEntity<>(HttpUtils.genErrorJson("query is not invalid").toString(), HttpStatus.OK);
         }
+    }
+
+    @GetMapping(value = "/download/{requestId}")
+    public ResponseEntity<?> downloadFile(@PathVariable(value = "requestId") String requestId) {
+        Path path = Paths.get(OUTPUT_RESULT_FOLDER, requestId);
+        File file = new File(path.toString());
+
+        if (!file.exists()) {
+            return new ResponseEntity<>(HttpUtils.genErrorJson("file not found").toString(), HttpStatus.NOT_FOUND);
+        }
+
+        ByteArrayResource resource = null;
+        try {
+            resource = new ByteArrayResource(Files.readAllBytes(path));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + requestId);
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(file.length())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 
 }
