@@ -1,11 +1,10 @@
 package vn.com.vtcc.apiExpose.utils;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -25,12 +24,11 @@ public class FileUtils {
         String data = null;
         try {
             fis = new FileInputStream(filePath);
-            data = IOUtils.toString(new FileInputStream(filePath), "UTF-8");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            data = IOUtils.toString(new FileInputStream(filePath), StandardCharsets.UTF_8);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            assert fis != null;
             fis.close();
         }
         if (data != null) {
@@ -39,13 +37,25 @@ public class FileUtils {
         return null;
     }
 
+    public static void writeFile(String text, String filePath) throws IOException {
+        File file = new File(filePath);
+        org.apache.commons.io.FileUtils.writeStringToFile(file, text, StandardCharsets.UTF_8);
+    }
+
     public static List<String> listFiles(String path) {
         File f = new File(path);
         List<File> list = Arrays.asList(f.listFiles());
-        List<String> listFileName = list.stream().map(file -> {
-            return file.toString();
-        }).collect(Collectors.toList());
+        List<String> listFileName = list.stream().map(File::toString).collect(Collectors.toList());
         return listFileName;
+    }
+
+    public static boolean exist(String filePath) {
+        return new File(filePath).exists();
+    }
+
+    public static boolean deleteFile(String filePath) {
+        File file = new File(filePath);
+        return file.delete();
     }
 
     public static boolean createFolderIfNotExists(String path) {

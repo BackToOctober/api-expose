@@ -17,7 +17,10 @@ public abstract class TypeOperator {
         List<String> keys = new ArrayList<>(json.toMap()
                 .keySet());
         if (keys.size() > 1) {
-            if (parent == null && !parent.startsWith("and") && !parent.startsWith("or")) {
+            if (parent == null) {
+                throw new QueryParsingException("invalid query");
+            }
+            if (!parent.startsWith("and") && !parent.startsWith("or")) {
                 throw new QueryParsingException("invalid query");
             }
             List<String> sub = new ArrayList<>();

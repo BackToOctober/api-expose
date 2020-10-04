@@ -8,8 +8,8 @@ import java.util.*;
 
 public class StringOperator extends TypeOperator {
 
-    private static Logger logger = LoggerFactory.getLogger(StringOperator.class);
-    private static List<String> strFunc = Arrays.asList("not_like", "like", "equal", "regexp", "not_regexp");
+    private static final Logger logger = LoggerFactory.getLogger(StringOperator.class);
+    private static final List<String> strFunc = Arrays.asList("not_like", "like", "equal", "regexp", "not_regexp");
 
     @Override
     public boolean validate(String operator, Object value) {

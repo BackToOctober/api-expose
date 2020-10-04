@@ -1,7 +1,5 @@
 package vn.com.vtcc.apiExpose.entity;
 
-import lombok.Getter;
-import lombok.Setter;
 import vn.com.vtcc.apiExpose.utils.IDGenerator;
 
 import javax.persistence.Column;

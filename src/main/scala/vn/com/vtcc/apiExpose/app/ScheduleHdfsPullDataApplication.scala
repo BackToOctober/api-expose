@@ -11,7 +11,7 @@ import scala.collection.mutable.ArrayBuffer
 
 object ScheduleHdfsPullDataApplication {
 
-    var mysqlFactory : MysqlConnectorFactory = null
+    var mysqlFactory : MysqlConnectorFactory = _
     var outputHdfsFolder : String = _
     var outputLocalFolder : String = _
 
@@ -41,6 +41,10 @@ object ScheduleHdfsPullDataApplication {
         outputLocalFolder = props.getProperty("local.output.result")
         val coreSitePath = props.getProperty("hdfs.core_site")
         val hdfsSitePath = props.getProperty("hdfs.hdfs_site")
+
+        println("hdfs_site_path: " + hdfsSitePath)
+        println("core_site_path: " +coreSitePath)
+
         val jobs = listJobFileSave()
         for (job <- jobs) {
             pullDataFromHdfs(job, coreSitePath, hdfsSitePath)
@@ -65,13 +69,14 @@ object ScheduleHdfsPullDataApplication {
     }
 
     def updateJobState(id: String, state: String, retry: Int): Unit = {
-        val query = "update job_request set job_state = {{state}} and retry = {{retry}} and updated_time = {{updated_time}} where id = {{id}}"
-        val conn = mysqlFactory.createConnect()
-        val statement = conn.createStatement
-        val results = statement.executeQuery(query.replace("{{state}}", state)
+        var query = "update job_request set job_state = '{{state}}', retry = {{retry}}, updated_time = {{updated_time}} where id = '{{id}}'"
+        query = query.replace("{{state}}", state)
             .replace("{{retry}}", retry.toString)
             .replace("{{updated_time}}", System.currentTimeMillis().toString)
-            .replace("{{id}}", id))
+            .replace("{{id}}", id)
+        val conn = mysqlFactory.createConnect()
+        val statement = conn.createStatement
+        val results = statement.executeUpdate(query)
     }
 
     def main(args: Array[String]): Unit = {

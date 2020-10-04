@@ -9,8 +9,8 @@ import java.util.List;
 
 public class BooleanOperator extends TypeOperator{
 
-    private static Logger logger = LoggerFactory.getLogger(BooleanOperator.class);
-    private static List<String> boolFunc = Arrays.asList("is");
+    private static final Logger logger = LoggerFactory.getLogger(BooleanOperator.class);
+    private static final List<String> boolFunc = Arrays.asList("is");
 
     @Override
     public boolean validate(String operator, Object value) {

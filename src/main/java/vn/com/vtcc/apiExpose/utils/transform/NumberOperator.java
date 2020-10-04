@@ -10,8 +10,8 @@ import java.util.List;
 
 public class NumberOperator extends TypeOperator{
 
-    private static Logger logger = LoggerFactory.getLogger(NumberOperator.class);
-    private static List<String> numberFunc = Arrays.asList("gt", "eq", "lt", "ge", "le");
+    private static final Logger logger = LoggerFactory.getLogger(NumberOperator.class);
+    private static final List<String> numberFunc = Arrays.asList("gt", "eq", "lt", "ge", "le");
 
     @Override
     public boolean validate(String operator, Object value) {
@@ -37,15 +37,15 @@ public class NumberOperator extends TypeOperator{
     @Override
     public String castToSql(String field, String operator, String value) throws QueryParsingException {
         if (operator.startsWith("gt")) {
-            return String.format("%s > '%s'", field, value);
+            return String.format("%s > %s", field, value);
         } else if (operator.startsWith("eq")) {
-            return String.format("%s = '%s'", field, value);
+            return String.format("%s = %s", field, value);
         } else if (operator.startsWith("lt")) {
-            return String.format("%s < '%s'", field, value);
+            return String.format("%s < %s", field, value);
         } else if (operator.startsWith("ge")) {
-            return String.format("%s >= '%s'", field, value);
+            return String.format("%s >= %s", field, value);
         } else if (operator.startsWith("le")) {
-            return String.format("%s <= '%s'", field, value);
+            return String.format("%s <= %s", field, value);
         } else {
             throw new QueryParsingException("invalid query");
         }

@@ -16,7 +16,6 @@ import vn.com.vtcc.apiExpose.entity.JobRequest;
 import vn.com.vtcc.apiExpose.repository.JobRequestRepository;
 import vn.com.vtcc.apiExpose.utils.FileUtils;
 import vn.com.vtcc.apiExpose.utils.HttpUtils;
-import vn.com.vtcc.apiExpose.utils.transform.BooleanOperator;
 import vn.com.vtcc.apiExpose.utils.transform.QueryParsing;
 
 import java.io.File;
@@ -33,10 +32,10 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/api")
 public class MainController {
 
-    private static Logger logger = LoggerFactory.getLogger(MainController.class);
+    private static final Logger logger = LoggerFactory.getLogger(MainController.class);
 
-    private static String METADATA_FOLDER = "config/metadata/";
-    private static String OUTPUT_RESULT_FOLDER = "output/result";
+    private static final String METADATA_FOLDER = "config/metadata/";
+    private static final String OUTPUT_RESULT_FOLDER = "output/result";
 
     private JobRequestRepository jobRequestRepository;
 
@@ -106,7 +105,7 @@ public class MainController {
         File file = new File(path.toString());
 
         if (!file.exists()) {
-            return new ResponseEntity<>(HttpUtils.genErrorJson("file not found").toString(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(HttpUtils.genErrorJson("file not found").toString(), HttpStatus.OK);
         }
 
         ByteArrayResource resource = null;

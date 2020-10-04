@@ -2,10 +2,10 @@ package vn.com.vtcc.apiExpose.app
 
 import java.util.Properties
 
-import org.apache.log4j.LogManager
+import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.sql.SparkSession
 import org.json.JSONObject
-import vn.com.vtcc.apiExpose.dataSource.mysql.{MysqlConnectorFactory, SparkThriftConnectorFactory}
+import vn.com.vtcc.apiExpose.dataSource.mysql.MysqlConnectorFactory
 import vn.com.vtcc.apiExpose.entity.JobRequest
 import vn.com.vtcc.apiExpose.utils.FileUtils
 import vn.com.vtcc.apiExpose.utils.transform.QueryParsing
@@ -14,11 +14,11 @@ import scala.collection.mutable.ArrayBuffer
 
 object ScheduleJobSparkApplication {
 
-    val logger = LogManager.getLogger(ScheduleJobSparkApplication.getClass)
+    val logger: Logger = LogManager.getLogger(ScheduleJobSparkApplication.getClass)
 
     var outputHdfsFolder : String = _
     var metadataFolder : String = _
-    var mysqlFactory : MysqlConnectorFactory = null
+    var mysqlFactory : MysqlConnectorFactory = _
 
     var thresholdRetry : Int = 1
 
@@ -52,6 +52,9 @@ object ScheduleJobSparkApplication {
         mysqlFactory = new MysqlConnectorFactory(props)
         thresholdRetry = props.getProperty("job.retry").toInt
         metadataFolder = props.getProperty("config.metadata")
+        if (metadataFolder.equals("null")) {
+            metadataFolder = ""
+        }
         outputHdfsFolder = props.getProperty("hdfs.output.result")
         val jobs = listJobRequest()
         for (job <- jobs) {
@@ -71,29 +74,36 @@ object ScheduleJobSparkApplication {
             val spark = SparkSession.builder().getOrCreate()
             val df = spark.sql(sql)
             val path = outputHdfsFolder + "/" + jobId
+            logger.info(" >> path: " + path)
             df.write.option("header", "true").option("delimiter", ",").csv(path)
             updateJobState(jobId, JobState.FILE_SAVE, job.getRetry + 1)
+            df.show()
         } catch {
             case e: Exception => {
+                e.printStackTrace()
                 updateJobState(jobId, JobState.FAIL, job.getRetry + 1)
             }
         }
+        Thread.sleep(60000)
     }
 
     def updateJobState(id: String, state: String, retry: Int): Unit = {
-        val query = "update job_request set job_state = {{state}} and retry = {{retry}} and updated_time = {{updated_time}} where id = {{id}}"
+        var query = "update job_request set job_state = '{{state}}', retry = {{retry}}, updated_time = {{updated_time}} where id = '{{id}}'"
+        query = query.replace("{{state}}", state)
+            .replace("{{retry}}", retry.toString)
+            .replace("{{updated_time}}", System.currentTimeMillis().toString)
+            .replace("{{id}}", id)
+        logger.info(" >> update query: " + query)
         val conn = mysqlFactory.createConnect()
         val statement = conn.createStatement
-        val results = statement.executeQuery(query.replace("{{state}}", state)
-                    .replace("{{retry}}", retry.toString)
-                    .replace("{{updated_time}}", System.currentTimeMillis().toString)
-                    .replace("{{id}}", id))
+        val results = statement.executeUpdate(query)
+        conn.close()
     }
 
     def parseToSql(query: String): String= {
         val json = new JSONObject(query)
         val t1 = QueryParsing.parse(json.getJSONObject("query").toString, metadataFolder)
-        logger.info("--> query: " + t1)
+        logger.info(" >> query: " + t1)
         t1
     }
 

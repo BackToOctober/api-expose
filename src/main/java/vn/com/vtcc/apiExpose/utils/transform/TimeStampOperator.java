@@ -11,8 +11,8 @@ import java.util.List;
 
 public class TimeStampOperator extends TypeOperator {
 
-    private static Logger logger = LoggerFactory.getLogger(TimeStampOperator.class);
-    private static List<String> timeFunc = Arrays.asList("equal", "start", "end");
+    private static final Logger logger = LoggerFactory.getLogger(TimeStampOperator.class);
+    private static final List<String> timeFunc = Arrays.asList("equal", "start", "end");
 
     @Override
     public boolean validate(String operator, Object value) {

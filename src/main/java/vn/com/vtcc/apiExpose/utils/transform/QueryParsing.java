@@ -18,6 +18,8 @@ public class QueryParsing {
 
     public static Logger logger = LoggerFactory.getLogger(QueryParsing.class);
 
+    public static String DATABASE = "vtcc_dw";
+
     public static StringOperator stringOperator = new StringOperator();
     public static NumberOperator numberOperator = new NumberOperator();
     public static TimeStampOperator timeStampOperator = new TimeStampOperator();
@@ -57,7 +59,7 @@ public class QueryParsing {
                     boolean check = true;
                     if (type.equals("string")) {
                         check = stringOperator.validateRoot(filterQuery.getJSONObject(field), true);
-                    } else if (type.equals("int") || type.equals("long") || type.equals("double") || type.equals("float")) {
+                    } else if (type.equals("int") || type.equals("long") || type.equals("double") || type.equals("float") || type.equals("bigint")) {
                         check = numberOperator.validateRoot(filterQuery.getJSONObject(field), true);
                     } else if (type.equals("timestamp")) {
                         check = timeStampOperator.validateRoot(filterQuery.getJSONObject(field), true);
@@ -87,7 +89,7 @@ public class QueryParsing {
         String sql = "";
 
         // 1. select fields
-        String database = "vtcc_dw";
+        String database = DATABASE;
         String table = json.getString("article_type");
         List<String> fields = json.getJSONArray("fields").toList()
                 .stream()
@@ -113,15 +115,20 @@ public class QueryParsing {
                 String type = metadata.get(field).trim().toLowerCase();
                 if (type.equals("string")) {
                     filterSql.add("(" + stringOperator.parse(field, filterQuery.getJSONObject(field), null) + ")");
+                } else if (type.equals("int") || type.equals("long") || type.equals("double") || type.equals("float") || type.equals("bigint")) {
+                    filterSql.add("(" + numberOperator.parse(field, filterQuery.getJSONObject(field), null) + ")");
+                } else if (type.equals("boolean")) {
+                    filterSql.add("(" + booleanOperator.parse(field, filterQuery.getJSONObject(field), null) + ")");
+                } else if (type.equals("timestamp")) {
+                    filterSql.add("(" + timeStampOperator.parse(field, filterQuery.getJSONObject(field), null) + ")");
+                } else {
+                    throw new QueryParsingException("not support type of " + field);
                 }
             }
             if (filterSql.size() > 0) {
                 sql = sql + " where " + String.join(" and ", filterSql);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        } catch (QueryParsingException e) {
+        } catch (IOException | QueryParsingException e) {
             e.printStackTrace();
             return null;
         }
