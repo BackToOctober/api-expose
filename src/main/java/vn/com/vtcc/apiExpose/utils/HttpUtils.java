@@ -6,7 +6,7 @@ public class HttpUtils {
 
     public static JSONObject genSuccessJson(String msg) {
         JSONObject successJson = new JSONObject();
-        successJson.put("url", msg);
+        successJson.put("success", msg);
         return successJson;
     }
 

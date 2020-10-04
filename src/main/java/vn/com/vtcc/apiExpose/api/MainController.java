@@ -93,13 +93,13 @@ public class MainController {
             JobRequest job = new JobRequest(query, JobState.WAITING(), timeStamp, timeStamp);
             this.jobRequestRepository.save(job);
             String path = Paths.get(OUTPUT_RESULT_FOLDER, job.getId()).toString();
-            return new ResponseEntity<>(HttpUtils.genSuccessJson(path).toString(), HttpStatus.OK);
+            return new ResponseEntity<>(HttpUtils.genSuccessJson("query is processing").toString(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpUtils.genErrorJson("query is not invalid").toString(), HttpStatus.OK);
         }
     }
 
-    @GetMapping(value = "/download/{requestId}")
+    @GetMapping(value = "/download/{requestId}/fileId")
     public ResponseEntity<?> downloadFile(@PathVariable(value = "requestId") String requestId) {
         Path path = Paths.get(OUTPUT_RESULT_FOLDER, requestId);
         File file = new File(path.toString());

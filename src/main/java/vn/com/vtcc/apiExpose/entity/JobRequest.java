@@ -20,24 +20,39 @@ public class JobRequest {
     private int retry;
     private long createdTime;
     private long updatedTime;
+    @Column(columnDefinition = "longtext")
+    private String files;
 
-    protected JobRequest() {}
+    public JobRequest() {}
 
     public JobRequest(String query, String jobState, long updatedTime, long createdTime) {
-        this(IDGenerator.genID(), query, jobState, 0, updatedTime, createdTime);
+        this(IDGenerator.genID(), query, jobState, 0, updatedTime, createdTime, null);
     }
 
     public JobRequest(String id, String query, String jobState, long updatedTime, long createdTime) {
-        this(id, query, jobState, 0, updatedTime, createdTime);
+        this(id, query, jobState, 0, updatedTime, createdTime, null);
     }
 
     public JobRequest(String id, String query, String jobState, int retry, long updatedTime, long createdTime) {
+        this(id, query, jobState, retry, updatedTime, createdTime, null);
+    }
+
+    public JobRequest(String id, String query, String jobState, int retry, long updatedTime, long createdTime, String files) {
         this.id = id;
         this.query = query;
         this.jobState = jobState;
         this.retry = retry;
         this.updatedTime = updatedTime;
         this.createdTime = createdTime;
+        this.files = files;
+    }
+
+    public String getFiles() {
+        return files;
+    }
+
+    public void setFiles(String files) {
+        this.files = files;
     }
 
     public String getId() {
