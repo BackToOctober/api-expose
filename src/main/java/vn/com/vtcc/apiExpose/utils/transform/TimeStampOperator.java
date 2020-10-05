@@ -38,11 +38,11 @@ public class TimeStampOperator extends TypeOperator {
     @Override
     public String castToSql(String field, String operator, String value) throws QueryParsingException {
         if (operator.startsWith("start")) {
-            return String.format("%s >= unix_timestamp('%s','yyyy-MM-dd HH:mm:ss')", field, value);
+            return String.format("%s >= to_timestamp('%s','yyyy-MM-dd HH:mm:ss')", field, value);
         } else if (operator.startsWith("end")) {
-            return String.format("%s < unix_timestamp('%s','yyyy-MM-dd HH:mm:ss')", field, value);
+            return String.format("%s < to_timestamp('%s','yyyy-MM-dd HH:mm:ss')", field, value);
         } else if (operator.startsWith("equal")) {
-            return String.format("%s = unix_timestamp('%s','yyyy-MM-dd HH:mm:ss')", field, value);
+            return String.format("%s = to_timestamp('%s','yyyy-MM-dd HH:mm:ss')", field, value);
         } else {
             throw new QueryParsingException("invalid query");
         }

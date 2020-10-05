@@ -1,15 +1,20 @@
 package vn.com.vtcc.apiExpose.app
 
+import java.util
 import java.util.Properties
 
 import org.apache.hadoop.fs.Path
+import org.apache.log4j.{LogManager, Logger}
 import vn.com.vtcc.apiExpose.dataSource.mysql.MysqlConnectorFactory
 import vn.com.vtcc.apiExpose.entity.JobRequest
 import vn.com.vtcc.apiExpose.utils.{FileUtils, HdfsUtils}
 
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.JavaConversions._
 
 object ScheduleHdfsPullDataApplication {
+
+    val logger: Logger = LogManager.getLogger(ScheduleHdfsPullDataApplication.getClass)
 
     var mysqlFactory : MysqlConnectorFactory = _
     var outputHdfsFolder : String = _
@@ -24,11 +29,12 @@ object ScheduleHdfsPullDataApplication {
         while (results.next()){
             val id = results.getString("id")
             val query = results.getString("query")
+            val query_parsing = results.getString("query_parsing")
             val job_state = results.getString("job_state")
             val updated_time = results.getLong("updated_time")
             val created_time = results.getLong("created_time")
             val retry = results.getInt("retry")
-            val jobRequest = new JobRequest(id, query, job_state, retry, updated_time, created_time)
+            val jobRequest = new JobRequest(id, query, query_parsing, job_state, retry, updated_time, created_time)
             list.+=(jobRequest)
         }
         conn.close()
@@ -59,7 +65,17 @@ object ScheduleHdfsPullDataApplication {
             if (HdfsUtils.exists(hdfsPath, fs)) {
                 fs.copyToLocalFile(new Path(hdfsPath), new Path(localPath))
             }
-            updateJobState(job.getId, JobState.SUCCESS, job.getRetry)
+            val filePathsTmp = FileUtils.listFiles(localPath)
+            val fileNameApiArr = new util.ArrayList[String]()
+            for (filePath <- filePathsTmp) {
+                val arr = filePath.split("/")
+                if (!arr(arr.length - 1).equals("_SUCCESS") && !arr(arr.length -1).startsWith(".")) {
+                    logger.info(" >>" + arr(arr.length - 1))
+                    fileNameApiArr.add("/api/download/" + job.getId + "/" + arr(arr.length - 1))
+                }
+            }
+            val fileNames = String.join(",", fileNameApiArr)
+            updateJobState(job.getId, JobState.SUCCESS, job.getRetry, fileNames)
             fs.close()
         } catch {
             case e: Exception => {
@@ -68,11 +84,12 @@ object ScheduleHdfsPullDataApplication {
         }
     }
 
-    def updateJobState(id: String, state: String, retry: Int): Unit = {
-        var query = "update job_request set job_state = '{{state}}', retry = {{retry}}, updated_time = {{updated_time}} where id = '{{id}}'"
+    def updateJobState(id: String, state: String, retry: Int, fileNames: String): Unit = {
+        var query = "update job_request set job_state = '{{state}}', retry = {{retry}}, updated_time = {{updated_time}}, files = '{{fileNames}}' where id = '{{id}}'"
         query = query.replace("{{state}}", state)
             .replace("{{retry}}", retry.toString)
             .replace("{{updated_time}}", System.currentTimeMillis().toString)
+            .replace("{{fileNames}}", fileNames)
             .replace("{{id}}", id)
         val conn = mysqlFactory.createConnect()
         val statement = conn.createStatement

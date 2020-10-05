@@ -16,6 +16,8 @@ public class JobRequest {
 
     @Column(columnDefinition = "longtext")
     private String query;
+    @Column(columnDefinition = "longtext")
+    private String queryParsing;
     private String jobState;
     private int retry;
     private long createdTime;
@@ -25,26 +27,35 @@ public class JobRequest {
 
     public JobRequest() {}
 
-    public JobRequest(String query, String jobState, long updatedTime, long createdTime) {
-        this(IDGenerator.genID(), query, jobState, 0, updatedTime, createdTime, null);
+    public JobRequest(String query, String queryParsing, String jobState, long updatedTime, long createdTime) {
+        this(IDGenerator.genID(), query, queryParsing, jobState, 0, updatedTime, createdTime, null);
     }
 
-    public JobRequest(String id, String query, String jobState, long updatedTime, long createdTime) {
-        this(id, query, jobState, 0, updatedTime, createdTime, null);
+    public JobRequest(String id, String query, String queryParsing, String jobState, long updatedTime, long createdTime) {
+        this(id, query, queryParsing, jobState, 0, updatedTime, createdTime, null);
     }
 
-    public JobRequest(String id, String query, String jobState, int retry, long updatedTime, long createdTime) {
-        this(id, query, jobState, retry, updatedTime, createdTime, null);
+    public JobRequest(String id, String query, String queryParsing, String jobState, int retry, long updatedTime, long createdTime) {
+        this(id, query, queryParsing, jobState, retry, updatedTime, createdTime, null);
     }
 
-    public JobRequest(String id, String query, String jobState, int retry, long updatedTime, long createdTime, String files) {
+    public JobRequest(String id, String query, String queryParsing, String jobState, int retry, long updatedTime, long createdTime, String files) {
         this.id = id;
         this.query = query;
+        this.queryParsing = queryParsing;
         this.jobState = jobState;
         this.retry = retry;
         this.updatedTime = updatedTime;
         this.createdTime = createdTime;
         this.files = files;
+    }
+
+    public String getQueryParsing() {
+        return queryParsing;
+    }
+
+    public void setQueryParsing(String queryParsing) {
+        this.queryParsing = queryParsing;
     }
 
     public String getFiles() {

@@ -35,12 +35,13 @@ object ScheduleJobSparkApplication {
         while (results.next()){
             val id = results.getString("id")
             val query = results.getString("query")
+            val query_parsing = results.getString("query_parsing")
             val job_state = results.getString("job_state")
             val updated_time = results.getLong("updated_time")
             val created_time = results.getLong("created_time")
             val retry = results.getInt("retry")
             if (job_state.equals(JobState.WAITING) || (job_state.equals(JobState.FAIL) && retry < thresholdRetry)) {
-                val jobRequest = new JobRequest(id, query, job_state, retry, updated_time, created_time)
+                val jobRequest = new JobRequest(id, query, query_parsing, job_state, retry, updated_time, created_time)
                 list.+=(jobRequest)
             }
         }

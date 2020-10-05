@@ -54,7 +54,7 @@ public class MainController {
         List<String> listFileName = FileUtils.listFiles(METADATA_FOLDER);
         List<String> listArticle = listFileName.stream().map(fileName -> {
             try {
-                return FileUtils.readJsonFile(fileName).get("article").toString();
+                return FileUtils.readJsonFile(fileName).getString("article");
             } catch (IOException e) {
                 e.printStackTrace();
                 return null;
@@ -62,7 +62,7 @@ public class MainController {
         }).filter(Objects::nonNull).collect(Collectors.toList());
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("list_article", new JSONArray(listArticle));
-        return new ResponseEntity<>(jsonObject.toString(), HttpStatus.OK);
+        return new ResponseEntity<>(jsonObject.toString(4), HttpStatus.OK);
     }
 
     @GetMapping(value = "/metadata-article/{article}")
@@ -70,10 +70,10 @@ public class MainController {
         String filePath = Paths.get(METADATA_FOLDER, article + ".json").toString();
         try {
             JSONObject jsonObject = FileUtils.readJsonFile(filePath);
-            return new ResponseEntity<>(jsonObject.get("metadata").toString(), HttpStatus.OK);
+            return new ResponseEntity<>(jsonObject.getJSONArray("metadata").toString(4), HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
-            return new ResponseEntity<>(HttpUtils.genErrorJson("not found").toString(), HttpStatus.OK);
+            return new ResponseEntity<>(HttpUtils.genErrorJson("not found").toString(4), HttpStatus.OK);
         }
     }
 
@@ -81,31 +81,41 @@ public class MainController {
     public ResponseEntity<?> checkStatus(@PathVariable(value = "requestId") String requestId) {
         Optional<JobRequest> result = jobRequestRepository.findById(requestId);
         if (!result.isPresent()) {
-            return new ResponseEntity<>(HttpUtils.genErrorJson("not found").toString(), HttpStatus.OK);
+            return new ResponseEntity<>(HttpUtils.genErrorJson("not found").toString(4), HttpStatus.OK);
         }
-        return new ResponseEntity<>(result.get(), HttpStatus.OK);
+        JSONObject json = new JSONObject();
+        json.put("id", result.get().getId());
+        json.put("job_state", result.get().getJobState());
+        if (result.get().getFiles() != null) {
+            json.put("files", new JSONArray(result.get().getFiles().split(",")));
+        } else {
+            json.put("files", new JSONArray());
+        }
+        return new ResponseEntity<>(json.toString(4), HttpStatus.OK);
     }
 
     @PostMapping(value = "/query-data", headers = {"Content-Type=application/json; charset=UTF-8"})
     public ResponseEntity<?> queryData(@RequestBody String query) {
         if (QueryParsing.validate(query, METADATA_FOLDER)) {
             long timeStamp = System.currentTimeMillis();
-            JobRequest job = new JobRequest(query, JobState.WAITING(), timeStamp, timeStamp);
+            JSONObject json = new JSONObject(query);
+            JobRequest job = new JobRequest(query, QueryParsing.parse(json.getJSONObject("query").toString(), METADATA_FOLDER), JobState.WAITING(), timeStamp, timeStamp);
             this.jobRequestRepository.save(job);
             String path = Paths.get(OUTPUT_RESULT_FOLDER, job.getId()).toString();
-            return new ResponseEntity<>(HttpUtils.genSuccessJson("query is processing").toString(), HttpStatus.OK);
+            return new ResponseEntity<>(new JSONObject().put("id", job.getId()).toString(4), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpUtils.genErrorJson("query is not invalid").toString(), HttpStatus.OK);
+            return new ResponseEntity<>(HttpUtils.genErrorJson("query is not invalid").toString(4), HttpStatus.OK);
         }
     }
 
-    @GetMapping(value = "/download/{requestId}/fileId")
-    public ResponseEntity<?> downloadFile(@PathVariable(value = "requestId") String requestId) {
-        Path path = Paths.get(OUTPUT_RESULT_FOLDER, requestId);
+    @GetMapping(value = "/download/{requestId}/{fileName}")
+    public ResponseEntity<?> downloadFile(@PathVariable(value = "requestId") String requestId,
+                                          @PathVariable(value = "fileName") String fileName) {
+        Path path = Paths.get(OUTPUT_RESULT_FOLDER, requestId, fileName);
         File file = new File(path.toString());
 
         if (!file.exists()) {
-            return new ResponseEntity<>(HttpUtils.genErrorJson("file not found").toString(), HttpStatus.OK);
+            return new ResponseEntity<>(HttpUtils.genErrorJson("file not found").toString(4), HttpStatus.OK);
         }
 
         ByteArrayResource resource = null;
@@ -115,7 +125,7 @@ public class MainController {
             e.printStackTrace();
         }
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + requestId);
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName);
         return ResponseEntity.ok()
                 .headers(headers)
                 .contentLength(file.length())
