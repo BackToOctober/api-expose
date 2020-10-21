@@ -6,7 +6,7 @@ import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.sql.SparkSession
 import org.json.JSONObject
 import vn.com.vtcc.apiExpose.dataSource.mysql.MysqlConnectorFactory
-import vn.com.vtcc.apiExpose.entity.JobRequest
+import vn.com.vtcc.apiExpose.entity.model.JobRequest
 import vn.com.vtcc.apiExpose.utils.FileUtils
 import vn.com.vtcc.apiExpose.utils.transform.QueryParsing
 

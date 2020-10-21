@@ -6,7 +6,7 @@ import java.util.Properties
 import org.apache.hadoop.fs.Path
 import org.apache.log4j.{LogManager, Logger}
 import vn.com.vtcc.apiExpose.dataSource.mysql.MysqlConnectorFactory
-import vn.com.vtcc.apiExpose.entity.JobRequest
+import vn.com.vtcc.apiExpose.entity.model.JobRequest
 import vn.com.vtcc.apiExpose.utils.{FileUtils, HdfsUtils}
 
 import scala.collection.mutable.ArrayBuffer

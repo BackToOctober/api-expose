@@ -1,4 +1,4 @@
-package vn.com.vtcc.apiExpose.entity;
+package vn.com.vtcc.apiExpose.entity.model;
 
 import vn.com.vtcc.apiExpose.utils.IDGenerator;
 

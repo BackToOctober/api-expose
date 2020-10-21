@@ -2,11 +2,7 @@ package vn.com.vtcc.apiExpose.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import vn.com.vtcc.apiExpose.entity.JobRequest;
-import vn.com.vtcc.apiExpose.repository.JobRequestRepository;
 
 @Configuration
 public class LoadDatabase {

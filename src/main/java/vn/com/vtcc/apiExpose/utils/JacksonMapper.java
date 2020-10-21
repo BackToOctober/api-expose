@@ -10,4 +10,8 @@ public class JacksonMapper {
     public static String parseToString(Object value) throws JsonProcessingException {
         return objectMapper.writeValueAsString(value);
     }
+
+    public static Object parseToObject(String value, Class objectClass) throws JsonProcessingException {
+        return objectMapper.readValue(value, objectClass);
+    }
 }
