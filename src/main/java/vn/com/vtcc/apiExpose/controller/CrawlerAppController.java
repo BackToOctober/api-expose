@@ -17,6 +17,7 @@ import vn.com.vtcc.apiExpose.app.JobState;
 import vn.com.vtcc.apiExpose.entity.dto.ArticleList;
 import vn.com.vtcc.apiExpose.entity.dto.ArticleMetadata;
 import vn.com.vtcc.apiExpose.entity.dto.JobChecking;
+import vn.com.vtcc.apiExpose.entity.dto.JobQuery;
 import vn.com.vtcc.apiExpose.entity.model.JobRequest;
 import vn.com.vtcc.apiExpose.entity.response.DataRestResponse;
 import vn.com.vtcc.apiExpose.entity.response.RestCode;
@@ -113,8 +114,10 @@ public class CrawlerAppController {
             JSONObject json = new JSONObject(query);
             JobRequest job = new JobRequest(query, QueryParsing.parse(json.getJSONObject("query").toString(), METADATA_FOLDER), JobState.WAITING(), timeStamp, timeStamp);
             this.jobRequestRepository.save(job);
-            String path = Paths.get(OUTPUT_RESULT_FOLDER, job.getId()).toString();
-            return new ResponseEntity<>(HttpUtils.makeSuccessResponse("query is ok"), HttpStatus.OK);
+            String jobId = job.getId();
+            JobQuery jobQuery = new JobQuery();
+            jobQuery.setId(jobId);
+            return new ResponseEntity<>(jobQuery, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(new DataRestResponse<>(RestCode.ERROR_QUERY_NOT_VALID_CODE, RestCode.ERROR_QUERY_NOT_VALID_CODE_MSG, null), HttpStatus.OK);
         }
